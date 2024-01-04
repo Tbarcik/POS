@@ -1,0 +1,3 @@
+/Users/tomas/CLionProjects/projekt-POS/cmake-build-debug/CMakeFiles/projekt_POS.dir
+/Users/tomas/CLionProjects/projekt-POS/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/tomas/CLionProjects/projekt-POS/cmake-build-debug/CMakeFiles/rebuild_cache.dir
