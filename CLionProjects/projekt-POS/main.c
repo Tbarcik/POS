@@ -1,127 +1,177 @@
-/*#include <iostream>
-#include <vector>
-#include <cstdlib>
+#include <stdio.h>
+#include <time.h>
 #include <unistd.h>
+#include "stdlib.h"
+#include "stdbool.h"
 
-using namespace std;
+const int INVALID_INDEX = -1;
 
+typedef struct pole_data {
+    _Bool* baza;
+    unsigned dim1;
+    unsigned dim2;
+} POLE_DATA;
 
-vector<vector<bool>> vytvorSvet(int riadky, int stlpce, bool nahodne) {
-    vector<vector<bool>> svet(riadky, vector<bool>(stlpce, false));
+/**
+ * V dynamickej pamati vytvori nove pole podla zadanych parametrov. Treba potom DEALOKOVAT!
+ */
+void vytvorPole(POLE_DATA* data) {
+    data->baza = (_Bool*) calloc(data->dim1 * data->dim2, sizeof (_Bool));
+//    for (int i = 0; i < (data->dim1 * data->dim2); i++) {
+//        *(data->baza + i) = false;
+//    }
+}
 
-    if (nahodne) {
+void znicPole(POLE_DATA* data) {
+    free(data->baza);
+}
 
-        for (int i = 0; i < riadky; ++i) {
-            for (int j = 0; j < stlpce; ++j) {
-                svet[i][j] = rand() % 2 == 0;
-            }
+void vykresliPole(POLE_DATA* data) {
+    for (int i = 0; i < data->dim1; ++i) {
+        for (int j = 0; j < data->dim2; ++j) {
+            char znak = '.';
+            if (*(data->baza + (i * data->dim2) + j))
+                znak = '*';
+            printf(" %c",  znak);
         }
+        printf("\n");
+    }
+}
 
-    } else {
+_Bool indexySuValidne(int index1, int index2, POLE_DATA* data) {
+    return index1 >= 0 && index1 < data->dim1 && index2 >= 0 && index2 < data->dim2;
+}
 
-        cout << "Manuálne nastavenie farieb:" << endl;
-        for (int i = 0; i < riadky; ++i) {
-            for (int j = 0; j < stlpce; ++j) {
-                char volba;
-                cout << "Bunka [" << i << "][" << j << "]: Chcete čiernu farbu? (y/n): ";
-                cin >> volba;
-                svet[i][j] = (volba == 'y' || volba == 'Y');
-            }
-        }
+_Bool getPolicko(int index1, int index2, POLE_DATA* data) {
+    if (indexySuValidne(index1, index2, data)) {
+        int offset = (index1 * data->dim2) + index2;
+        return *(data->baza + offset);
     }
 
-    return svet;
+    return INVALID_INDEX;
+}
+_Bool setPolicko(int index1, int index2, POLE_DATA* data, _Bool zivaBunka) {
+    if (indexySuValidne(index1, index2, data)) {
+        int offset = (index1 * data->dim2) + index2;
+        *(data->baza + offset) = zivaBunka;
+        return true;
+    }
+    return false;
 }
 
-
-void vypisSvet(const vector<vector<bool>>& svet) {
-for (const auto& riadok : svet) {
-for (bool bunka : riadok) {
-cout << (bunka ? 'X' : '.');
-}
-cout << endl;
-}
-}
-
-
-void aktualizujSvet(vector<vector<bool>>& svet) {
-int riadky = svet.size();
-int stlpce = svet[0].size();
-
-vector<vector<bool>> novySvet(riadky, vector<bool>(stlpce, false));
-
-for (int i = 0; i < riadky; ++i) {
-for (int j = 0; j < stlpce; ++j) {
-int ziviSusedia = 0;
-
-// Kontrola okolitých buniek
-for (int x = -1; x <= 1; ++x) {
-for (int y = -1; y <= 1; ++y) {
-if (x == 0 && y == 0) continue;
-int ni = i + x;
-int nj = j + y;
-
-// Overnie či susedné bunky nevypadajú
-if (ni >= 0 && ni < riadky && nj >= 0 && nj < stlpce) {
-ziviSusedia += svet[ni][nj] ? 1 : 0;
-}
-}
-}
-
-// Aplikácia pravidiel Game of Life
-if (svet[i][j]) {
-// Živá bunka
-if (ziviSusedia == 2 || ziviSusedia == 3) {
-novySvet[i][j] = true;  // Prežitie
-} else {
-novySvet[i][j] = false;  // Smrť
-}
-} else {
-// Mŕtva bunka
-if (ziviSusedia == 3) {
-novySvet[i][j] = true;  // Oživenie
-} else {
-novySvet[i][j] = false;
-}
-}
-}
-}
-
-
-svet = novySvet;
-}
-
-
+/**
+ * @return true - nahodne, false - manualne
+ */
 bool vyberSposobInicializacie() {
     char volba;
-    cout << "Chcete náhodné generovanie farieb alebo manuálne nastavenie? n - nahodné nastavenie m -manuálne nastavanie   (n/m): ";
-    cin >> volba;
+    printf("Vyberte prosím spôsob generovania: n - nahodné nastavenie | m -manuálne nastavanie  (n/m): ");
+    scanf("%c", &volba);
 
     return (volba == 'n' || volba == 'N');
 }
 
-int main() {
+void vytvorSvet(POLE_DATA* svet, bool nahodne) {
+
+    vytvorPole(svet);
+
+    if (nahodne) {
+        for (int i = 0; i < svet->dim1; ++i) {
+            for (int j = 0; j < svet->dim2; ++j) {
+                setPolicko(i, j, svet, rand() % 2 == 0);
+            }
+        }
+    } else {
+        // cout << "Manuálne nastavenie farieb:" << endl; // cout je pre c++, pre c je printf()
+        printf("Manuálne nastavenie farieb:\n");
+        for (int i = 0; i < svet->dim1; ++i) {
+            for (int j = 0; j < svet->dim2; ++j) {
+                char volba;
+                printf("Bunka [%d][%d]: Má byť bunka živá? (a/n): ", i, j);
+                scanf("%c", &volba);
+                setPolicko(i, j, svet, (volba == 'a' || volba == 'A'));
+            }
+        }
+        // tuto else vetvu by som spravil inak: podla mna by sa mal program spytat, ktoru bunku chce uzivatel ozivit.
+        // Toto by program cyklicky opakoval, kym by uzivatel nezadal nejaky ukoncovaci znak. Ostatne policka by
+        // boli nastavene na false - mrtve
+    }
+}
+
+void aktualizujSvet(POLE_DATA* stary_data) {
+    _Bool* nova_baza = (_Bool*) calloc(stary_data->dim1 * stary_data->dim2, sizeof (_Bool ));
+    POLE_DATA aktualizovane_pole = { nova_baza, stary_data->dim1, stary_data->dim2 };
+
+    for (int i = 0; i < stary_data->dim1; ++i) {
+        for (int j = 0; j < stary_data->dim2; ++j) {
+            int ziviSusedia = 0;
+
+            // Kontrola okolitých buniek
+            for (int x = -1; x <= 1; ++x) {
+                for (int y = -1; y <= 1; ++y) {
+                    if (x == 0 && y == 0) continue;
+                    int ni = i + x;
+                    int nj = j + y;
+
+                    // Overenie či susedné bunky nevypadajú
+                    if (ni >= 0 && ni < stary_data->dim2 && nj >= 0 && nj < stary_data->dim1) {
+                        ziviSusedia += getPolicko(ni, nj, stary_data) ? 1 : 0;
+                    }
+                }
+            }
+
+            // Aplikácia pravidiel Game of Life
+            if (getPolicko(i, j, stary_data)) {
+                // Živá bunka
+                //  1. Any live cell with fewer than two live neighbours dies, as if by underpopulation.
+                //  2. Any live cell with two or three live neighbours lives on to the next generation.
+                //  3. Any live cell with more than three live neighbours dies, as if by overpopulation.
+                if (ziviSusedia == 2 || ziviSusedia == 3) { // Prežitie
+                    setPolicko(i, j, &aktualizovane_pole, true);
+                } else {                                    // Smrť
+                    setPolicko(i, j, &aktualizovane_pole, false);
+                }
+            } else {
+                // Mŕtva bunka
+                // 4. Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+                if (ziviSusedia == 3) {                     // Oživenie
+                    setPolicko(i, j, &aktualizovane_pole, true);
+                } else {
+                    setPolicko(i, j, &aktualizovane_pole, false);
+                }
+            }
+        }
+    }
+    znicPole(stary_data);
+    stary_data->baza = nova_baza;
+}
+
+
+int main(int argc, char *argv[]) {
+
     srand(time(NULL));
-
-    int riadky = 10;
-    int stlpce = 10;
-
-
+    int riadky, stlpce;
+    if (argc > 2) {
+        riadky = atoi(argv[1]);
+        stlpce = atoi(argv[2]);
+    }
+    else {
+        riadky = 15;
+        stlpce = 20;
+    }
+    POLE_DATA svet = {NULL,riadky,stlpce };
     bool nahodne = vyberSposobInicializacie();
 
     // Vytvorenie sveta s vybraným spôsobom inicializácie
-    vector<vector<bool>> svet = vytvorSvet(riadky, stlpce, nahodne);
-
+    vytvorSvet(&svet, nahodne);
 
     for (int krok = 0; krok < 10; ++krok) {
-        cout << "Krok " << krok << ":" << endl;
-        vypisSvet(svet);
-
-        aktualizujSvet(svet);
+        printf("Krok %d:\n", krok);
+        vykresliPole(&svet);
+        aktualizujSvet(&svet);
 
         sleep(1);
     }
 
+    znicPole(&svet);
     return 0;
 }
-*/

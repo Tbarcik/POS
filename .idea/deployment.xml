@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="frios (6ef257da-ee58-4894-b899-1a6c57e2f343)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/tmp.DqLpArV3kt" local="$PROJECT_DIR$/CLionProjects/projekt-POS" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/CLionProjects/projekt-POS/cmake-build-debug" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
